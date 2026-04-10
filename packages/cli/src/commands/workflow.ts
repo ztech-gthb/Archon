@@ -603,7 +603,7 @@ export async function workflowRunCommand(
   } catch (dispatchError) {
     getLog().warn(
       { err: dispatchError as Error, conversationId },
-      'workflow_dispatch_surface_failed'
+      'cli.workflow_dispatch_surface_failed'
     );
   }
 
@@ -640,7 +640,7 @@ export async function workflowRunCommand(
       } catch (surfaceError) {
         getLog().warn(
           { err: surfaceError as Error, conversationId },
-          'workflow_output_surface_failed'
+          'cli.workflow_result_surface_failed'
         );
       }
     }

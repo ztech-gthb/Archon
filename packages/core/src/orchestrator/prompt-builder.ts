@@ -5,6 +5,7 @@
  */
 import type { Codebase } from '../types';
 import type { WorkflowDefinition } from '@archon/workflows/schemas/workflow';
+import { getArchonWorkspacesPath } from '@archon/paths';
 
 /**
  * Format a single project for the orchestrator prompt.
@@ -53,6 +54,8 @@ export function buildRoutingRulesWithProject(projectName?: string): string {
     ? `4. If ambiguous which project → use **${projectName}** (the active project)`
     : '4. If ambiguous which project → ask the user';
 
+  const workspacesPath = getArchonWorkspacesPath();
+
   return `## Routing Rules
 
 1. If the user asks a question, wants to explore code, or needs help → answer directly
@@ -90,13 +93,13 @@ Response: "Adding dark mode would involve... [answer the question]. If you'd lik
 ## Project Setup
 
 When a user asks to add a new project:
-1. Clone the repository into ~/.archon/workspaces/:
-   git clone https://github.com/{owner}/{repo} ~/.archon/workspaces/{owner}/{repo}/source
+1. Clone the repository into ${workspacesPath}/:
+   git clone https://github.com/{owner}/{repo} ${workspacesPath}/{owner}/{repo}/source
 2. Register it by emitting this command on its own line:
    /register-project {project-name} {path-to-source}
 
 Example:
-   /register-project my-new-app /home/user/.archon/workspaces/user/my-new-app/source
+   /register-project my-new-app ${workspacesPath}/user/my-new-app/source
 
 To update a project's path:
    /update-project {project-name} {new-path}
@@ -104,7 +107,7 @@ To update a project's path:
 To remove a registered project:
    /remove-project {project-name}
 
-IMPORTANT: Always clone into ~/.archon/workspaces/{owner}/{repo}/source unless the user specifies a different location.`;
+IMPORTANT: Always clone into ${workspacesPath}/{owner}/{repo}/source unless the user specifies a different location.`;
 }
 
 /**
@@ -115,10 +118,11 @@ export function buildOrchestratorPrompt(
   codebases: readonly Codebase[],
   workflows: readonly WorkflowDefinition[]
 ): string {
+  const workspacesPath = getArchonWorkspacesPath();
   let prompt = `# Archon Orchestrator
 
 You are Archon, an intelligent coding assistant that manages multiple projects.
-Your working directory is ~/.archon/workspaces/ where all projects live.
+Your working directory is ${workspacesPath}/ where all projects live.
 You can answer questions directly or invoke workflows for structured development tasks.
 
 ## Registered Projects
@@ -153,12 +157,13 @@ export function buildProjectScopedPrompt(
   allCodebases: readonly Codebase[],
   workflows: readonly WorkflowDefinition[]
 ): string {
+  const workspacesPath = getArchonWorkspacesPath();
   const otherCodebases = allCodebases.filter(c => c.id !== scopedCodebase.id);
 
   let prompt = `# Archon Orchestrator
 
 You are Archon, an intelligent coding assistant that manages multiple projects.
-Your working directory is ~/.archon/workspaces/ where all projects live.
+Your working directory is ${workspacesPath}/ where all projects live.
 You can answer questions directly or invoke workflows for structured development tasks.
 
 This conversation is scoped to **${scopedCodebase.name}**. Use this project for all workflow invocations unless the user explicitly mentions a different project.

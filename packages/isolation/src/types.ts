@@ -30,6 +30,13 @@ interface IsolationRequestBase {
   codebaseName?: string;
 
   /**
+   * The branch to sync the source clone to before creating a worktree.
+   * Falls back to the repo's .archon/config.yaml baseBranch, then auto-detection.
+   * Set from codebase.default_branch in the database.
+   */
+  baseBranch?: BranchName;
+
+  /**
    * Absolute, resolved filesystem path to the main repository checkout.
    *
    * "Canonical" means the real path with symlinks resolved and `~` expanded
@@ -289,6 +296,8 @@ export interface ResolveRequest {
     id: string;
     defaultCwd: string;
     name: string;
+    /** The configured source branch from the codebase DB record. */
+    defaultBranch?: string;
   } | null;
   hints?: IsolationHints;
   platformType: string;

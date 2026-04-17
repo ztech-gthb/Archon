@@ -631,7 +631,10 @@ export class WorktreeProvider implements IIsolationProvider {
 
     // Sync uses only the configured base branch (or auto-detects via getDefaultBranch).
     // request.fromBranch is the start-point for worktree creation, not a sync target.
-    const baseBranch = await this.syncWorkspaceBeforeCreate(repoPath, worktreeConfig?.baseBranch);
+    // Prefer the repo's .archon/config.yaml baseBranch, then fall back to the
+    // codebase DB default_branch, then auto-detect from remote.
+    const configuredBaseBranch = worktreeConfig?.baseBranch ?? request.baseBranch;
+    const baseBranch = await this.syncWorkspaceBeforeCreate(repoPath, configuredBaseBranch);
 
     const worktreeBase = getWorktreeBase(repoPath, request.codebaseName);
 

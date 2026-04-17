@@ -439,6 +439,7 @@ export class IsolationResolver {
       codebaseName: codebase.name,
       canonicalRepoPath: canonicalPath,
       identifier: workflowId,
+      ...(codebase.defaultBranch ? { baseBranch: toBranchName(codebase.defaultBranch) } : {}),
     };
 
     let isolationRequest: IsolationRequest;

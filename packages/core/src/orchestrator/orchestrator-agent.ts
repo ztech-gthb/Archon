@@ -326,7 +326,10 @@ async function dispatchOrchestratorWorkflow(
 
 // ─── Session Helpers ────────────────────────────────────────────────────────
 
-async function tryPersistSessionId(sessionId: string, assistantSessionId: string): Promise<void> {
+async function tryPersistSessionId(
+  sessionId: string,
+  assistantSessionId: string | null
+): Promise<void> {
   try {
     await sessionDb.updateSession(sessionId, assistantSessionId);
   } catch (error) {
@@ -967,7 +970,12 @@ async function handleStreamMode(
         getLog().warn({ conversationId, errorSubtype: msg.errorSubtype }, 'ai_result_error');
         const syntheticError = new Error(msg.errorSubtype ?? 'AI result error');
         await platform.sendMessage(conversationId, classifyAndFormatError(syntheticError));
-        if (newSessionId) {
+        // On error_during_execution the session failed before any turns ran (e.g. the
+        // stored session ID no longer exists on the server). Clear it so the next message
+        // starts a fresh session instead of retrying a non-existent one forever.
+        if (msg.errorSubtype === 'error_during_execution') {
+          await tryPersistSessionId(session.id, null);
+        } else if (newSessionId) {
           await tryPersistSessionId(session.id, newSessionId);
         }
         return;
@@ -1090,7 +1098,12 @@ async function handleBatchMode(
         getLog().warn({ conversationId, errorSubtype: msg.errorSubtype }, 'ai_result_error');
         const syntheticError = new Error(msg.errorSubtype ?? 'AI result error');
         await platform.sendMessage(conversationId, classifyAndFormatError(syntheticError));
-        if (newSessionId) {
+        // On error_during_execution the session failed before any turns ran (e.g. the
+        // stored session ID no longer exists on the server). Clear it so the next message
+        // starts a fresh session instead of retrying a non-existent one forever.
+        if (msg.errorSubtype === 'error_during_execution') {
+          await tryPersistSessionId(session.id, null);
+        } else if (newSessionId) {
           await tryPersistSessionId(session.id, newSessionId);
         }
         return;

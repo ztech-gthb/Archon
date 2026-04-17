@@ -753,7 +753,7 @@ async function* streamClaudeMessages(
       const tokens = normalizeClaudeUsage(resultMsg.usage);
       if (resultMsg.is_error) {
         getLog().error(
-          { sessionId: resultMsg.session_id, errorSubtype: resultMsg.subtype },
+          { sessionId: resultMsg.session_id, errorSubtype: resultMsg.subtype, rawResult: msg },
           'claude.result_is_error'
         );
       }

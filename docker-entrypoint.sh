@@ -8,10 +8,14 @@ mkdir -p /.archon/workspaces /.archon/worktrees
 
 # Determine if we need to use gosu for privilege dropping
 if [ "$(id -u)" = "0" ]; then
-  # Running as root: fix volume permissions, then drop to appuser
+  # Running as root: fix volume permissions, then drop to appuser.
+  # chown may fail on macOS bind mounts (VirtioFS does not allow ownership changes
+  # from within the container). This is non-fatal: VirtioFS permits writes regardless
+  # of the ownership shown by ls, so appuser can operate normally.
+  # Note: we must still drop to appuser — Claude Code refuses --dangerously-skip-permissions as root.
   if ! chown -Rh appuser:appuser /.archon 2>/dev/null; then
-    echo "ERROR: Failed to fix ownership of /.archon — volume may be read-only or mounted with incompatible options" >&2
-    exit 1
+    echo "WARNING: Could not fix ownership of /.archon (macOS bind mount via VirtioFS?)." >&2
+    echo "         Continuing as appuser — VirtioFS allows writes regardless of shown ownership." >&2
   fi
   RUNNER="gosu appuser"
 else
